@@ -2,7 +2,7 @@ name: GAP Size Monitor
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 regex
       - name: Run checker
         env:
           PRODUCT_URL: ${{ secrets.PRODUCT_URL }}
