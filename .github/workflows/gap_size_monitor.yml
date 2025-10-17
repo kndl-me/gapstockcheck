@@ -18,6 +18,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
+      - name: Test Discord webhook (temporary)
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "WEBHOOK secret is empty or missing"; exit 2
+          fi
+          # Post a message and capture HTTP status without failing the job
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"content":"Test from GitHub Actions ✅"}' \
+            "$WEBHOOK" || echo "curl_error")
+          echo "HTTP status: $STATUS"
+          if [ "$STATUS" != "204" ] && [ "$STATUS" != "200" ]; then
+            echo "Discord did not accept the request (expected 204). Check your WEBHOOK URL."; exit 3
+          fi
+
       - name: Run checker
         env:
           PRODUCT_URL: ${{ secrets.PRODUCT_URL }}
