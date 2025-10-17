@@ -18,12 +18,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-      - name: Test Discord webhook (temporary)
-        env:
-          WEBHOOK: ${{ secrets.WEBHOOK }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" \
-            -d '{"content":"Test from GitHub Actions ✅"}' "$WEBHOOK"
       - name: Run checker
         env:
           PRODUCT_URL: ${{ secrets.PRODUCT_URL }}
