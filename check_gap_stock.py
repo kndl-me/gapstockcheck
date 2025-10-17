@@ -1,9 +1,9 @@
 
 #!/usr/bin/env python3
 """
-GAP Size Monitor - Checks a GAP product page for availability of a target size.
-Usage example:
-    python check_gap_stock.py --url "https://www.gap.com/browse/product.do?pid=XXXXX" --size L --webhook "https://hooks.slack.com/services/..."
+GAP Size Monitor - Discord-friendly
+- Posts to webhooks using both 'content' (Discord) and 'text' (Slack-style) keys.
+- Only sends notifications when size appears IN STOCK (by default).
 """
 import argparse, json, re, sys, requests
 from bs4 import BeautifulSoup
@@ -21,15 +21,18 @@ def check_once(url, size):
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text(" ", strip=True).lower()
     size_lower = size.lower()
+    # Negatives first
     if re.search(rf"\b{re.escape(size_lower)}\b\s*[-–:]?\s*(out of stock|sold out|unavailable)", text):
         return False, "out of stock text found"
-    if re.search(rf"\b{re.escape(size_lower)}\b.*(add to bag|in stock|available)", text):
+    # Positives
+    if re.search(rf"\b{re.escape(size_lower)}\b.*(add to bag|add to cart|in stock|available)", text):
         return True, "appears available"
     return None, "could not determine"
 
 def notify(webhook, message):
+    payload = {"content": message, "text": message, "username": "GAP Stock Monitor"}
     try:
-        requests.post(webhook, json={"text": message}, timeout=10)
+        requests.post(webhook, json=payload, timeout=10)
     except Exception as e:
         print(f"Webhook failed: {e}", file=sys.stderr)
 
@@ -38,7 +41,8 @@ def main():
     ap.add_argument("--url", required=True)
     ap.add_argument("--size", required=True)
     ap.add_argument("--webhook")
-    ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--quiet", action="store_true", help="suppress console output unless IN STOCK or unknown")
+    ap.add_argument("--always-notify", action="store_true", help="send a test notification regardless of stock")
     args = ap.parse_args()
 
     ok, detail = check_once(args.url, args.size)
@@ -48,10 +52,12 @@ def main():
     elif ok is False:
         msg = f"❌ Size {args.size} appears OUT OF STOCK ({detail})\n{args.url}"
 
-    if not args.quiet or ok:
+    if args.always-notify or not args.quiet or ok is True or ok is None:
         print(msg)
-    if args.webhook and ok:
-        notify(args.webhook, msg)
+
+    if args.webhook:
+        if args.always-notify or ok is True or ok is None:
+            notify(args.webhook, msg)
 
 if __name__ == "__main__":
     main()
