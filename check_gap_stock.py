@@ -42,7 +42,7 @@ def main():
     ap.add_argument("--size", required=True)
     ap.add_argument("--webhook")
     ap.add_argument("--quiet", action="store_true", help="suppress console output unless IN STOCK or unknown")
-    ap.add_argument("--always-notify", action="store_true", help="send a test notification regardless of stock")
+    ap.add_argument("--always_notify", action="store_true", help="send a test notification regardless of stock")
     args = ap.parse_args()
 
     ok, detail = check_once(args.url, args.size)
@@ -52,11 +52,11 @@ def main():
     elif ok is False:
         msg = f"❌ Size {args.size} appears OUT OF STOCK ({detail})\n{args.url}"
 
-    if args.always-notify or not args.quiet or ok is True or ok is None:
+    if args.always_notify or not args.quiet or ok is True or ok is None:
         print(msg)
 
     if args.webhook:
-        if args.always-notify or ok is True or ok is None:
+        if args.always_notify or ok is True or ok is None:
             notify(args.webhook, msg)
 
 if __name__ == "__main__":
