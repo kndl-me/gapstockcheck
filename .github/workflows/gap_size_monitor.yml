@@ -18,7 +18,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
-                - name: Test Discord webhook (temporary)
+      - name: Test Discord webhook (temporary)
         env:
           WEBHOOK: ${{ secrets.WEBHOOK }}
         run: |
